@@ -446,9 +446,10 @@ func TestUnlockMismatchingKey(t *testing.T) {
 }
 
 func TestKeyCompression(t *testing.T) {
+	selfSignature, _ := keyTestEC.entity.PrimarySelfSignature()
 	assert.Equal(
 		t,
 		[]uint8{uint8(packet.CompressionNone), uint8(packet.CompressionZLIB)},
-		keyTestEC.entity.PrimaryIdentity().SelfSignature.PreferredCompression,
+		selfSignature.PreferredCompression,
 	)
 }

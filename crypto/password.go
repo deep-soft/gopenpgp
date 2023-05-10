@@ -7,6 +7,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	pgpErrors "github.com/ProtonMail/go-crypto/openpgp/errors"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
+	"github.com/ProtonMail/go-crypto/openpgp/s2k"
 	"github.com/pkg/errors"
 )
 
@@ -106,10 +107,14 @@ func EncryptSessionKeyWithPassword(sk *SessionKey, password []byte) ([]byte, err
 
 func passwordEncrypt(message *PlainMessage, password []byte) ([]byte, error) {
 	var outBuf bytes.Buffer
-
 	config := &packet.Config{
 		DefaultCipher: packet.CipherAES256,
 		Time:          getTimeGenerator(),
+		AEADConfig:    &packet.AEADConfig{},
+		S2KConfig: &s2k.Config{
+			S2KMode:      s2k.Argon2S2K,
+			Argon2Config: &s2k.Argon2Config{},
+		},
 	}
 
 	hints := &openpgp.FileHints{

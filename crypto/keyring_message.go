@@ -241,6 +241,7 @@ func asymmetricEncryptStream(
 ) (encryptWriter io.WriteCloser, err error) {
 	config := &packet.Config{
 		DefaultCipher: packet.CipherAES256,
+		AEADConfig:    &packet.AEADConfig{},
 		Time:          getTimeGenerator(),
 	}
 

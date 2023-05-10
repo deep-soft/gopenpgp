@@ -17,6 +17,7 @@ import (
 
 	openpgp "github.com/ProtonMail/go-crypto/openpgp"
 	packet "github.com/ProtonMail/go-crypto/openpgp/packet"
+	"github.com/ProtonMail/go-crypto/openpgp/s2k"
 )
 
 // Key contains a single private or public key.
@@ -97,6 +98,13 @@ func (key *Key) Copy() (*Key, error) {
 // Lock locks a copy of the key.
 func (key *Key) Lock(passphrase []byte) (*Key, error) {
 	unlocked, err := key.IsUnlocked()
+	config := &packet.Config{
+		AEADConfig: &packet.AEADConfig{},
+		S2KConfig: &s2k.Config{
+			S2KMode:      s2k.Argon2S2K,
+			Argon2Config: &s2k.Argon2Config{},
+		},
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +123,7 @@ func (key *Key) Lock(passphrase []byte) (*Key, error) {
 	}
 
 	if lockedKey.entity.PrivateKey != nil && !lockedKey.entity.PrivateKey.Dummy() {
-		err = lockedKey.entity.PrivateKey.Encrypt(passphrase)
+		err = lockedKey.entity.PrivateKey.EncryptWithConfig(passphrase, config)
 		if err != nil {
 			return nil, errors.Wrap(err, "gopenpgp: error in locking key")
 		}
@@ -123,7 +131,7 @@ func (key *Key) Lock(passphrase []byte) (*Key, error) {
 
 	for _, sub := range lockedKey.entity.Subkeys {
 		if sub.PrivateKey != nil && !sub.PrivateKey.Dummy() {
-			if err := sub.PrivateKey.Encrypt(passphrase); err != nil {
+			if err := sub.PrivateKey.EncryptWithConfig(passphrase, config); err != nil {
 				return nil, errors.Wrap(err, "gopenpgp: error in locking sub key")
 			}
 		}
@@ -451,10 +459,16 @@ func generateKey(
 		DefaultHash:            crypto.SHA256,
 		DefaultCipher:          packet.CipherAES256,
 		DefaultCompressionAlgo: packet.CompressionZLIB,
+		AEADConfig:             &packet.AEADConfig{},
+		V6Keys:                 true,
 	}
 
 	if keyType == "x25519" {
-		cfg.Algorithm = packet.PubKeyAlgoEdDSA
+		cfg.Algorithm = packet.PubKeyAlgoEd25519
+	}
+
+	if keyType == "x448" {
+		cfg.Algorithm = packet.PubKeyAlgoEd448
 	}
 
 	if prime1 != nil && prime2 != nil && prime3 != nil && prime4 != nil {

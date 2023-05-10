@@ -8,8 +8,12 @@ import (
 
 	"github.com/ProtonMail/go-crypto/openpgp/ecdh"
 	"github.com/ProtonMail/go-crypto/openpgp/ecdsa"
+	"github.com/ProtonMail/go-crypto/openpgp/ed25519"
+	"github.com/ProtonMail/go-crypto/openpgp/ed448"
 	"github.com/ProtonMail/go-crypto/openpgp/eddsa"
 	"github.com/ProtonMail/go-crypto/openpgp/elgamal"
+	"github.com/ProtonMail/go-crypto/openpgp/x25519"
+	"github.com/ProtonMail/go-crypto/openpgp/x448"
 )
 
 func (sk *SessionKey) Clear() (ok bool) {
@@ -61,6 +65,9 @@ func clearPrivateKey(privateKey interface{}) error {
 		return clearEdDSAPrivateKey(priv)
 	case *ecdh.PrivateKey:
 		return clearECDHPrivateKey(priv)
+	case *ed25519.PrivateKey, *x25519.PrivateKey, *ed448.PrivateKey, *x448.PrivateKey:
+		// do nothing for  demo
+		return nil
 	default:
 		return errors.New("gopenpgp: unknown private key")
 	}
