@@ -249,7 +249,8 @@ func verifySignature(
 	}
 	signatureReader := bytes.NewReader(signature)
 
-	sig, signer, err := openpgp.VerifyDetachedSignatureAndHash(pubKeyEntries, origText, signatureReader, allowedHashes, config)
+	// expected hashes not used for demo (v6 requires salt )
+	sig, signer, err := openpgp.VerifyDetachedSignature(pubKeyEntries, origText, signatureReader, config)
 
 	if sig != nil && signer != nil && (errors.Is(err, pgpErrors.ErrSignatureExpired) || errors.Is(err, pgpErrors.ErrKeyExpired)) { //nolint:nestif
 		if verifyTime == 0 { // Expiration check disabled
