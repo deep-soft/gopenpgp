@@ -60,6 +60,7 @@ func DecryptSessionKeyWithPassword(keyPacket, password []byte) (*SessionKey, err
 				sk := &SessionKey{
 					Key:  key,
 					Algo: getAlgo(cipherFunc),
+					V6:   s.Version == 6,
 				}
 
 				if err = sk.checkSize(); err != nil {
